@@ -13,8 +13,12 @@ async function init() {
 }
 
 // ---- Text helpers ----
-function getTextPolylines(text, charHeight) {
-  try { return jscad.text.vectorText({ input: text, height: charHeight, xOffset: 0, yOffset: 0 }); }
+function getTextPolylines(text, charHeight, lineWidth) {
+  // letterSpacing > 1 ensures the inter-character gap stays at least one stroke width
+  // after the hullChain expansion fills each stroke outward by lineWidth/2 on both sides.
+  // Extra advance needed = lineWidth; expressed as a fraction of the typical glyph advance (~charHeight).
+  const letterSpacing = 1 + lineWidth / 2 / charHeight;
+  try { return jscad.text.vectorText({ input: text, height: charHeight, xOffset: 0, yOffset: 0, letterSpacing }); }
   catch { return null; }
 }
 
@@ -200,7 +204,7 @@ function buildModel(config) {
   let globalTextH = 0;
   function measureTextH(text) {
     if (!text || !text.trim()) return 0;
-    let polylines = getTextPolylines(text.trim(), charH);
+    let polylines = getTextPolylines(text.trim(), charH, textLineWidth);
     if (!polylines) return 0;
     let m = measurePolylines(polylines);
     if (!m || m.width <= 0) return 0;
@@ -223,7 +227,7 @@ function buildModel(config) {
     let textW = 0, textH = 0, text2Ds = null, textYStart = 0;
 
     if (labelText && labelText.trim()) {
-      let polylines = getTextPolylines(labelText.trim(), charH);
+      let polylines = getTextPolylines(labelText.trim(), charH, textLineWidth);
       if (polylines) {
         let m = measurePolylines(polylines);
         if (m && m.width > 0) {
