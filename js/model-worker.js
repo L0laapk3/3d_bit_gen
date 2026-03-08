@@ -242,11 +242,16 @@ function buildModel(config) {
     const logoY = globalTextH > 0 ? (totalH / 2) - (logoSize / 2) : 0;
     const textContainerTopY = globalTextH > 0 ? logoY - (logoSize / 2) - textGap : 0;
 
+    // Cutouts are double the inset depth, centered on the face plane to avoid coplanar z-fighting.
+    // In local group space, Z=0 is the face surface. Shapes extend ±(effLabelDepth + epsilon).
+    const cutHalf = effLabelDepth + 0.1;
+    const cutHeight = cutHalf * 2;
+
     // 1. Negative Circle (Logo background subtracted)
     let circleSub3D = circle({ radius: (logoSize / 2) * groupScale, segments: 32 });
     circleSub3D = translate([0, logoY * groupScale, 0], circleSub3D);
-    circleSub3D = extrudeLinear({ height: effLabelDepth + 0.5 }, circleSub3D);
-    circleSub3D = translate([0, 0, -0.1], circleSub3D);
+    circleSub3D = extrudeLinear({ height: cutHeight }, circleSub3D);
+    circleSub3D = translate([0, 0, -cutHalf], circleSub3D);
 
     const subParts = [circleSub3D];
 
@@ -254,8 +259,8 @@ function buildModel(config) {
     if (text2Ds) {
       let t = scale([groupScale, groupScale, 1], text2Ds);
       t = translate([0, (textContainerTopY + textYStart) * groupScale, 0], t);
-      const t3d = extrudeLinear({ height: effLabelDepth + 0.5 }, t);
-      subParts.push(translate([0, 0, -0.1], t3d));
+      const t3d = extrudeLinear({ height: cutHeight }, t);
+      subParts.push(translate([0, 0, -cutHalf], t3d));
     }
 
     // 3. Positive Symbol (added inside the negative circle — clipped to circle bounds)
@@ -265,14 +270,14 @@ function buildModel(config) {
        const b2D = buildBitShape2D(bType.geom, (logoSize / 20) * groupScale);
        if (b2D) {
           const sym2D = translate([0, logoY * groupScale, 0], b2D);
-          let symExtruded = extrudeLinear({ height: effLabelDepth + 0.1 }, sym2D);
-          symExtruded = translate([0, 0, -0.1], symExtruded);
+          let symExtruded = extrudeLinear({ height: cutHeight }, sym2D);
+          symExtruded = translate([0, 0, -cutHalf], symExtruded);
 
           // Clip symbol strictly to the logo circle so it cannot fill adjacent text engravings
           const clipCircle2D = circle({ radius: (logoSize / 2) * groupScale, segments: 32 });
           const clipCircle2DPos = translate([0, logoY * groupScale, 0], clipCircle2D);
-          let clipCyl = extrudeLinear({ height: effLabelDepth + 0.2 }, clipCircle2DPos);
-          clipCyl = translate([0, 0, -0.1], clipCyl);
+          let clipCyl = extrudeLinear({ height: cutHeight }, clipCircle2DPos);
+          clipCyl = translate([0, 0, -cutHalf], clipCyl);
 
           symbolAdd3D = intersect(symExtruded, clipCyl);
        }
@@ -285,7 +290,9 @@ function buildModel(config) {
     const pGroup = createPillGroup(bitTypeId, labelText);
     const faceZ = isFront ? plateDepth / 2 : -plateDepth / 2;
     const rotY = isFront ? 0 : Math.PI;
-    const startZ = isFront ? faceZ - effLabelDepth : faceZ + effLabelDepth;
+    // Cutouts are centered on the face plane (startZ = faceZ); the group geometry
+    // already extends ±effLabelDepth around Z=0 in local space.
+    const startZ = faceZ;
 
     // Z extrude directions:
     // With 0 rotation: extrude goes +Z (so z=0 to z=effLabelDepth)

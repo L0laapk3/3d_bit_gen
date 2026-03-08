@@ -69,9 +69,7 @@ export async function initPreview(containerId) {
   scene.add(dirLight3);
 
   // Grid — will be repositioned to model bottom
-  gridHelper = new THREE.GridHelper(100, 20, 0x888888, 0x555555);
-  gridHelper.material.opacity = 0.35;
-  gridHelper.material.transparent = true;
+  gridHelper = createRectGridHelper(THREE, 100, 100, 20, 20, 0x888888, 0x555555);
   scene.add(gridHelper);
 
   window.addEventListener('resize', onResize);
@@ -141,17 +139,19 @@ export function updatePreviewFromSTL(stlArrayBuffer, config) {
 
   scene.add(currentMesh);
 
-  // Position grid at bottom of model, resized to fit the model footprint
+  // Position grid at bottom of model, sized to fit the model footprint with padding
   const box = new THREE.Box3().setFromObject(currentMesh);
   const bottomY = box.min.y;
   const modelSize = box.getSize(new THREE.Vector3());
-  const gridSpan = Math.max(modelSize.x, modelSize.z, 20) * 2.5;
-  const gridDivisions = Math.max(10, Math.ceil(gridSpan / 5) * 2);
+  const GRID_PADDING = 20;
+  const gridSizeX = Math.max(modelSize.x, 10) + GRID_PADDING * 2;
+  const gridSizeZ = Math.max(modelSize.z, 10) + GRID_PADDING * 2;
+  const cellSize = 5;
+  const divisionsX = Math.max(4, Math.ceil(gridSizeX / cellSize));
+  const divisionsZ = Math.max(4, Math.ceil(gridSizeZ / cellSize));
 
   if (gridHelper) scene.remove(gridHelper);
-  gridHelper = new THREE.GridHelper(gridSpan, gridDivisions, 0x888888, 0x555555);
-  gridHelper.material.opacity = 0.35;
-  gridHelper.material.transparent = true;
+  gridHelper = createRectGridHelper(THREE, gridSizeX, gridSizeZ, divisionsX, divisionsZ, 0x888888, 0x555555);
   scene.add(gridHelper);
   gridHelper.position.y = bottomY;
 
@@ -168,6 +168,52 @@ export function updatePreviewFromSTL(stlArrayBuffer, config) {
 }
 
 let labelMeshes = [];
+
+/**
+ * Create a rectangular (non-square) grid helper.
+ * @param {object} THREE - Three.js module
+ * @param {number} sizeX - Width along X
+ * @param {number} sizeZ - Width along Z
+ * @param {number} divisionsX - Number of divisions along X
+ * @param {number} divisionsZ - Number of divisions along Z
+ * @param {number} color1 - Center line color
+ * @param {number} color2 - Grid line color
+ */
+function createRectGridHelper(THREE, sizeX, sizeZ, divisionsX, divisionsZ, color1, color2) {
+  const vertices = [];
+  const colors = [];
+  const c1 = new THREE.Color(color1);
+  const c2 = new THREE.Color(color2);
+  const halfX = sizeX / 2;
+  const halfZ = sizeZ / 2;
+
+  // Lines parallel to Z axis (stepping along X)
+  for (let i = 0; i <= divisionsX; i++) {
+    const x = -halfX + (i / divisionsX) * sizeX;
+    const c = (i === Math.floor(divisionsX / 2)) ? c1 : c2;
+    vertices.push(x, 0, -halfZ, x, 0, halfZ);
+    colors.push(c.r, c.g, c.b, c.r, c.g, c.b);
+  }
+
+  // Lines parallel to X axis (stepping along Z)
+  for (let i = 0; i <= divisionsZ; i++) {
+    const z = -halfZ + (i / divisionsZ) * sizeZ;
+    const c = (i === Math.floor(divisionsZ / 2)) ? c1 : c2;
+    vertices.push(-halfX, 0, z, halfX, 0, z);
+    colors.push(c.r, c.g, c.b, c.r, c.g, c.b);
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+  const material = new THREE.LineBasicMaterial({
+    vertexColors: true,
+    opacity: 0.35,
+    transparent: true,
+  });
+  return new THREE.LineSegments(geometry, material);
+}
 
 /**
  * Add thin colored rectangles at each label surface for visual contrast.

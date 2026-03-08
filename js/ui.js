@@ -96,7 +96,9 @@ function renderConfigList() {
       input.type = 'text';
       input.value = c.name;
       input.className = 'config-item-editing';
-      input.style.height = '35px'; // Force height to match item
+      // Match the exact rendered height of the item being replaced
+      input.style.height = item.offsetHeight + 'px';
+      input.style.boxSizing = 'border-box';
       item.replaceWith(input);
       input.focus();
       input.select();
