@@ -17,8 +17,8 @@ function makeDefaultConfig(name = 'New Configuration') {
     description: '',
     rowMode: 'single',
     labelBothSides: true,
-    row1SlotCount: 6,
-    row2SlotCount: 6,
+    row1SlotCount: 1,
+    row2SlotCount: 1,
     padding: 3,
     holeDepth: 8,
     hexWidth: 6.35,
@@ -26,8 +26,8 @@ function makeDefaultConfig(name = 'New Configuration') {
     cornerRadius: 1,
     plateHeight: 10,
     textLineWidth: 0.5,
-    row1Slots: Array.from({ length: 6 }, () => makeDefaultSlot()),
-    row2Slots: Array.from({ length: 6 }, () => makeDefaultSlot()),
+    row1Slots: [ makeDefaultSlot() ],
+    row2Slots: [ makeDefaultSlot() ],
   };
 }
 
@@ -39,7 +39,7 @@ function makeBuiltinConfigs() {
     rowMode: 'single',
     labelBothSides: true,
     row1SlotCount: 3,
-    row2SlotCount: 6,
+    row2SlotCount: 1,
     padding: 3,
     holeDepth: 8,
     hexWidth: 6.35,
@@ -52,7 +52,7 @@ function makeBuiltinConfigs() {
       { bitType: 'pozidrive', label: 'PZ2' },
       { bitType: 'pozidrive', label: 'PZ3' },
     ],
-    row2Slots: Array.from({ length: 6 }, () => makeDefaultSlot()),
+    row2Slots: [ makeDefaultSlot() ],
   };
 
   const torx = {
@@ -62,7 +62,7 @@ function makeBuiltinConfigs() {
     rowMode: 'single',
     labelBothSides: true,
     row1SlotCount: 8,
-    row2SlotCount: 8,
+    row2SlotCount: 1,
     padding: 3,
     holeDepth: 8,
     hexWidth: 6.35,
@@ -80,7 +80,7 @@ function makeBuiltinConfigs() {
       { bitType: 'torx', label: 'T30' },
       { bitType: 'torx', label: 'T40' },
     ],
-    row2Slots: Array.from({ length: 8 }, () => makeDefaultSlot()),
+    row2Slots: [ makeDefaultSlot() ],
   };
 
   return { configs: [pz, torx], activeId: torx.id };
@@ -169,6 +169,20 @@ export function createConfig(name) {
   saveConfigs(_configs);
   saveActiveId(_activeId);
   return cfg;
+}
+
+export function duplicateConfig(id) {
+  const src = _configs.find(c => c.id === id);
+  if (!src) return null;
+  const copy = JSON.parse(JSON.stringify(src));
+  copy.id = generateId();
+  copy.name = src.name + ' (Copy)';
+  const idx = _configs.indexOf(src);
+  _configs.splice(idx + 1, 0, copy);
+  _activeId = copy.id;
+  saveConfigs(_configs);
+  saveActiveId(_activeId);
+  return copy;
 }
 
 export function renameConfig(id, newName) {
