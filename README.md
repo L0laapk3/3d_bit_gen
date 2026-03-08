@@ -2,17 +2,20 @@
 
 A client-side parametric 3D screw bit holder generator. Configure bit layouts, types, and labels — then preview and download `.stl` files. Everything runs in the browser, no server needed.
 
-**Live at**: `https://L0laapk3.github.io/3d_bit_holder/`
+**Live at**: https://L0laapk3.github.io/3d_bit_gen/
+
+Fully vibecoded.
 
 ## Features
 
 - 🔧 **25+ bit types** across 5 categories (Standard, Torx, Hex, Specialty, Drill)
-- 📐 **Parametric design** — configurable hex width, depth, spacing, labels
+- 📐 **Parametric design** — configurable hex width, depth, padding, labels
 - 🔄 **Single or double row** modes with automatic centering
 - 🖼️ **Live 3D preview** with orbit controls (Three.js)
 - 💾 **STL export** for 3D printing
 - 🎨 **Light / Dark / System theme** toggle
 - ⚙️ **Multiple configurations** with localStorage persistence
+- 💾 **Local persistence** — settings saved automatically via `localStorage`
 
 ## Tech Stack
 
@@ -29,14 +32,7 @@ No build step — just HTML, CSS, and ES modules loaded from CDN.
 
 ```bash
 # Any static server works:
-npx http-server -p 8080
+pnpx http-server
 
 # Then open http://localhost:8080
 ```
-
-## Deploying to GitHub Pages
-
-1. Go to your repo **Settings → Pages**
-2. Set source to **Deploy from a branch**
-3. Select the `main` branch, root folder
-4. Save — your site will be live at `https://<username>.github.io/3d_bit_holder/`

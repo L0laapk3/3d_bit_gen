@@ -158,16 +158,16 @@ body {
 	margin-bottom: 12px;
 }
 
-/* ===== Config Tabs ===== */
-.config-tabs {
+/* ===== Config List ===== */
+.config-list {
 	display: flex;
-	flex-wrap: wrap;
+	flex-direction: column;
 	gap: 6px;
 	margin-bottom: 10px;
 }
 
-.config-tab {
-	padding: 5px 12px;
+.config-item {
+	padding: 8px 12px;
 	border: 1px solid var(--border);
 	border-radius: var(--radius);
 	background: var(--bg-panel-alt);
@@ -177,23 +177,47 @@ body {
 	font-weight: 500;
 	cursor: pointer;
 	transition: all var(--transition);
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.config-name {
+	flex: 1;
 	white-space: nowrap;
-	max-width: 160px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
-.config-tab:hover {
+.config-rename-btn {
+	background: transparent;
+	border: none;
+	color: var(--text-muted);
+	cursor: pointer;
+	padding: 2px 4px;
+	border-radius: var(--radius-sm);
+	transition: all var(--transition);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.config-rename-btn:hover {
+	color: var(--accent);
+	background: var(--border);
+}
+
+.config-item:hover {
 	border-color: var(--accent);
 }
 
-.config-tab.active {
+.config-item.active {
 	background: var(--accent);
 	color: #fff;
 	border-color: var(--accent);
 }
 
-.config-tab-editing {
+.config-item-editing {
 	background: transparent;
 	border: 1px solid var(--accent);
 	border-radius: var(--radius);
@@ -201,9 +225,9 @@ body {
 	font-family: var(--font);
 	font-size: 0.85rem;
 	font-weight: 500;
-	padding: 4px 10px;
+	padding: 7px 11px;
 	outline: none;
-	width: 120px;
+	width: 100%;
 }
 
 .config-actions {
@@ -305,9 +329,22 @@ body {
 	letter-spacing: 0.04em;
 }
 
-.unit-label {
-	text-transform: none;
-	font-weight: 400;
+.input-with-unit {
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+
+.input-with-unit input {
+	padding-right: 36px !important;
+}
+
+.input-with-unit .unit-label {
+	position: absolute;
+	right: 12px;
+	color: var(--text-muted);
+	font-size: 0.82rem;
+	pointer-events: none;
 }
 
 .form-group input[type="number"],
@@ -406,64 +443,136 @@ input[type="number"] {
 	margin-bottom: 8px;
 }
 
-.slots-header {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	margin-bottom: 10px;
-}
-
-.slots-header h3 {
-	font-size: 0.95rem;
-	font-weight: 600;
-}
-
 .slot-list {
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
+	position: relative;
 }
 
 .slot-item {
-	display: grid;
-	grid-template-columns: 24px 40px 1fr;
+	display: flex;
 	gap: 6px;
 	align-items: center;
+	position: relative;
+}
+
+/* Blue drop indicator line shown during drag-reorder — flows as a flex sibling, no absolute positioning */
+.drag-drop-indicator {
+	height: 2px;
+	background: var(--accent);
+	border-radius: 2px;
+	pointer-events: none;
+	box-shadow: 0 0 5px var(--accent);
+	margin: 1px 0;
+	flex-shrink: 0;
 }
 
 .slot-index {
+	width: 20px;
+	flex-shrink: 0;
 	font-size: 0.75rem;
 	font-weight: 600;
 	color: var(--text-muted);
 	text-align: center;
 }
 
-/* ===== Bit Type Dropdown (compact when closed) ===== */
-.slot-type-select {
-	padding: 4px 4px;
+/* ===== Custom Select for Bit Types ===== */
+.custom-select {
+	position: relative;
+	width: 40px;
+	height: 30px;
 	border: 1px solid var(--border);
 	border-radius: var(--radius-sm);
 	background: var(--input-bg);
-	color: var(--select-text);
+	cursor: pointer;
 	font-family: var(--font);
 	font-size: 0.82rem;
+	user-select: none;
 	transition: border-color var(--transition);
-	width: 40px;
-	cursor: pointer;
-	text-overflow: '';
-	overflow: hidden;
 }
 
-.slot-type-select:focus {
-	outline: none;
+.custom-select:focus,
+.custom-select.select-active {
 	border-color: var(--accent);
-	width: auto;
-	min-width: 160px;
-	position: relative;
+	outline: none;
 	z-index: 10;
 }
 
+.select-selected {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	color: var(--select-text);
+}
+
+.select-items {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	background: var(--bg-panel);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-sm);
+	box-shadow: var(--shadow-lg);
+	max-height: 70vh;
+	width: max-content;
+	min-width: 160px;
+	overflow-y: auto;
+	z-index: 99;
+	padding: 4px 0;
+	margin-top: 2px;
+}
+
+.select-hide {
+	display: none;
+}
+
+.select-optgroup {
+	padding: 6px 12px;
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: var(--optgroup-text);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	background: var(--bg-panel-alt);
+}
+
+.select-option {
+	padding: 6px 12px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--select-text);
+	cursor: pointer;
+	transition: background var(--transition);
+}
+
+.select-option:hover,
+.select-option.selected {
+	background: var(--input-bg);
+}
+
+.select-option.selected {
+	font-weight: 600;
+	color: var(--accent);
+}
+
+.select-option-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+}
+
+.select-option-text {
+	flex: 1;
+}
+
 .slot-label-input {
+	height: 30px;
 	padding: 5px 8px;
 	border: 1px solid var(--border);
 	border-radius: var(--radius-sm);
@@ -473,7 +582,7 @@ input[type="number"] {
 	font-size: 0.85rem;
 	transition: border-color var(--transition);
 	min-width: 0;
-	width: 100%;
+	flex: 1;
 }
 
 .slot-label-input:focus {
@@ -481,30 +590,15 @@ input[type="number"] {
 	border-color: var(--accent);
 }
 
-/* ===== Dropdown Readability Fix ===== */
-select,
-.slot-type-select {
-	color: var(--select-text);
-}
-
-select option,
-.slot-type-select option {
-	color: var(--select-text);
-	background: var(--bg-panel);
-}
-
-select optgroup,
-.slot-type-select optgroup {
-	color: var(--optgroup-text);
-	font-weight: 600;
-	font-style: normal;
-}
-
 /* ===== Preview Area ===== */
 .preview-area {
 	position: relative;
 	background: var(--preview-bg);
 	overflow: hidden;
+}
+
+.btn-delete-slot:hover svg {
+	color: var(--danger, #dc3545);
 }
 
 .preview-container {

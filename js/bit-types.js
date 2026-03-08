@@ -1,10 +1,10 @@
 /**
  * Bit type definitions organized by category.
- * Each type has an SVG path for the UI icon and geometry data for 3D modeling.
- * SVG icons are drawn inside a 24x24 viewBox centered circle.
+ * Each type has abstract metric geometry (based on a 24x24 viewBox, center at 12,12).
+ * This defines both the SVG HTML ui and the 3D JSCAD geometry perfectly predictably.
  */
 
-// Helper: generate points for a regular polygon
+// Helper functions for common point arrays
 function regularPolygonPoints(cx, cy, r, sides, rotationDeg = 0) {
   const pts = [];
   for (let i = 0; i < sides; i++) {
@@ -14,269 +14,208 @@ function regularPolygonPoints(cx, cy, r, sides, rotationDeg = 0) {
   return pts;
 }
 
-function polygonToPath(pts) {
-  return pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0].toFixed(2)},${p[1].toFixed(2)}`).join(' ') + ' Z';
-}
-
-// Helper: star shape path
-function starPath(cx, cy, outerR, innerR, points, rotationDeg = 0) {
+function starPoints(cx, cy, outerR, innerR, points, rotationDeg = 0) {
   const pts = [];
   for (let i = 0; i < points * 2; i++) {
     const r = i % 2 === 0 ? outerR : innerR;
     const angle = (Math.PI * i) / points - Math.PI / 2 + (rotationDeg * Math.PI) / 180;
     pts.push([cx + r * Math.cos(angle), cy + r * Math.sin(angle)]);
   }
-  return polygonToPath(pts);
+  return pts;
 }
 
-// SVG circle outline (common to all icons)
-const CIRCLE = '<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/>';
-
 const BIT_TYPES = [
-  // ===== Standard =====
   {
     category: 'Standard',
     types: [
       {
-        id: 'phillips',
-        name: 'Phillips',
-        svgInner: '<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>',
-        shapeType: 'cross',
+        id: 'phillips', name: 'Phillips',
+        geom: [
+          { type: 'line', x1: 12, y1: 5, x2: 12, y2: 19, w: 2.2 },
+          { type: 'line', x1: 5, y1: 12, x2: 19, y2: 12, w: 2.2 }
+        ]
       },
       {
-        id: 'flathead',
-        name: 'Flathead / Slotted',
-        svgInner: '<path d="M6 12h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>',
-        shapeType: 'slot',
+        id: 'flathead', name: 'Flathead / Slotted',
+        geom: [
+          { type: 'line', x1: 6, y1: 12, x2: 18, y2: 12, w: 2.2 }
+        ]
       },
       {
-        id: 'pozidrive',
-        name: 'Pozidrive',
-        svgInner: `<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-                   <path d="M7.05 7.05l9.9 9.9M16.95 7.05l-9.9 9.9" stroke="currentColor" stroke-width="0.9" stroke-linecap="round"/>`,
-        shapeType: 'pozidrive',
+        id: 'pozidrive', name: 'Pozidrive',
+        geom: [
+          { type: 'line', x1: 12, y1: 5, x2: 12, y2: 19, w: 2.2 },
+          { type: 'line', x1: 5, y1: 12, x2: 19, y2: 12, w: 2.2 },
+          { type: 'line', x1: 7.05, y1: 7.05, x2: 16.95, y2: 16.95, w: 0.9 },
+          { type: 'line', x1: 7.05, y1: 16.95, x2: 16.95, y2: 7.05, w: 0.9 }
+        ]
       },
       {
-        id: 'robertson',
-        name: 'Robertson / Square',
-        svgInner: '<rect x="8.5" y="8.5" width="7" height="7" fill="none" stroke="currentColor" stroke-width="1.5"/>',
-        shapeType: 'square',
+        id: 'robertson', name: 'Robertson / Square',
+        geom: [
+          { type: 'polygon', points: regularPolygonPoints(12, 12, 4.5, 4, 45) }
+        ]
       },
       {
-        id: 'combination',
-        name: 'Combination (+/−)',
-        svgInner: `<path d="M12 6v12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                   <path d="M6 12h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                   <path d="M6.5 12h11" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.3"/>`,
-        shapeType: 'cross',
-      },
-    ],
+        id: 'combination', name: 'Combination (+/−)',
+        geom: [
+          { type: 'line', x1: 12, y1: 6, x2: 12, y2: 18, w: 2 },
+          { type: 'line', x1: 6, y1: 12, x2: 18, y2: 12, w: 3.5 }
+        ]
+      }
+    ]
   },
-  // ===== Torx Family =====
   {
     category: 'Torx Family',
     types: [
       {
-        id: 'torx',
-        name: 'Torx',
-        svgInner: `<path d="${starPath(12, 12, 6.5, 3.5, 6)}" fill="none" stroke="currentColor" stroke-width="1.3"/>`,
-        shapeType: 'torx',
+        id: 'torx', name: 'Torx',
+        geom: [ { type: 'polygon', points: starPoints(12, 12, 6.5, 3.5, 6) } ]
       },
       {
-        id: 'security_torx',
-        name: 'Security Torx',
-        svgInner: `<path d="${starPath(12, 12, 6.5, 3.5, 6)}" fill="none" stroke="currentColor" stroke-width="1.3"/>
-                   <circle cx="12" cy="12" r="1.5" fill="currentColor"/>`,
-        shapeType: 'security_torx',
+        id: 'security_torx', name: 'Security Torx',
+        geom: [
+          { type: 'polygon', points: starPoints(12, 12, 6.5, 3.5, 6) },
+          { type: 'circle_cut', cx: 12, cy: 12, r: 1.8 } // Wait, circle_cut means subtract from previous. Let's just use 'circle_cut' as a special type.
+        ]
       },
       {
-        id: 'torx_plus',
-        name: 'Torx Plus',
-        svgInner: `<path d="${starPath(12, 12, 6.5, 4.2, 6)}" fill="none" stroke="currentColor" stroke-width="1.3"/>`,
-        shapeType: 'torx_plus',
-      },
-      {
-        id: 'external_torx',
-        name: 'External Torx',
-        svgInner: `<path d="${starPath(12, 12, 7, 3.5, 6)}" fill="currentColor" opacity="0.15" stroke="currentColor" stroke-width="1"/>`,
-        shapeType: 'torx',
-      },
-    ],
+        id: 'torx_plus', name: 'Torx Plus',
+        geom: [ { type: 'polygon', points: starPoints(12, 12, 6.5, 4.2, 6) } ]
+      }
+    ]
   },
-  // ===== Hex =====
   {
     category: 'Hex',
     types: [
       {
-        id: 'hex',
-        name: 'Hex / Allen',
-        svgInner: `<path d="${polygonToPath(regularPolygonPoints(12, 12, 6, 6))}" fill="none" stroke="currentColor" stroke-width="1.3"/>`,
-        shapeType: 'hexagon',
+        id: 'hex', name: 'Hex / Allen',
+        geom: [ { type: 'polygon', points: regularPolygonPoints(12, 12, 6, 6) } ]
       },
       {
-        id: 'ball_hex',
-        name: 'Ball Hex',
-        svgInner: `<path d="${polygonToPath(regularPolygonPoints(12, 12, 6, 6))}" fill="none" stroke="currentColor" stroke-width="1.3"/>
-                   <circle cx="12" cy="12" r="2.5" fill="none" stroke="currentColor" stroke-width="0.8" stroke-dasharray="2 1"/>`,
-        shapeType: 'hexagon',
-      },
-      {
-        id: 'security_hex',
-        name: 'Security Hex',
-        svgInner: `<path d="${polygonToPath(regularPolygonPoints(12, 12, 6, 6))}" fill="none" stroke="currentColor" stroke-width="1.3"/>
-                   <circle cx="12" cy="12" r="1.5" fill="currentColor"/>`,
-        shapeType: 'security_hex',
-      },
-    ],
+        id: 'security_hex', name: 'Security Hex',
+        geom: [
+          { type: 'polygon', points: regularPolygonPoints(12, 12, 6, 6) },
+          { type: 'circle_cut', cx: 12, cy: 12, r: 1.8 }
+        ]
+      }
+    ]
   },
-  // ===== Specialty =====
   {
     category: 'Specialty',
     types: [
       {
-        id: 'tri_wing',
-        name: 'Tri-Wing',
-        svgInner: (() => {
-          const wings = [0, 120, 240].map(deg => {
-            const rad = (deg - 90) * Math.PI / 180;
-            const x2 = 12 + 6 * Math.cos(rad);
-            const y2 = 12 + 6 * Math.sin(rad);
-            return `<line x1="12" y1="12" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>`;
-          });
-          return wings.join('');
-        })(),
-        shapeType: 'tri_wing',
+        id: 'tri_wing', name: 'Tri-Wing',
+        geom: [0, 120, 240].map(deg => {
+          const rad = (deg - 90) * Math.PI / 180;
+          return { type: 'line', x1: 12, y1: 12, x2: 12 + 6 * Math.cos(rad), y2: 12 + 6 * Math.sin(rad), w: 2 };
+        })
       },
       {
-        id: 'tri_point',
-        name: 'Tri-Point / Y-Type',
-        svgInner: (() => {
-          const wings = [0, 120, 240].map(deg => {
-            const rad = (deg - 90) * Math.PI / 180;
-            const x2 = 12 + 6 * Math.cos(rad);
-            const y2 = 12 + 6 * Math.sin(rad);
-            return `<line x1="12" y1="12" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>`;
-          });
-          return wings.join('');
-        })(),
-        shapeType: 'tri_point',
+        id: 'tri_point', name: 'Tri-Point / Y-Type',
+        geom: [0, 120, 240].map(deg => {
+          const rad = (deg - 90) * Math.PI / 180;
+          return { type: 'line', x1: 12, y1: 12, x2: 12 + 6 * Math.cos(rad), y2: 12 + 6 * Math.sin(rad), w: 1.5 };
+        })
       },
       {
-        id: 'spanner',
-        name: 'Spanner',
-        svgInner: '<circle cx="9" cy="12" r="1.8" fill="currentColor"/><circle cx="15" cy="12" r="1.8" fill="currentColor"/>',
-        shapeType: 'spanner',
+        id: 'spanner', name: 'Spanner',
+        geom: [
+          { type: 'circle', cx: 8.5, cy: 12, r: 1.8 },
+          { type: 'circle', cx: 15.5, cy: 12, r: 1.8 }
+        ]
       },
       {
-        id: 'triangle',
-        name: 'Triangle',
-        svgInner: `<path d="${polygonToPath(regularPolygonPoints(12, 12, 6, 3))}" fill="none" stroke="currentColor" stroke-width="1.5"/>`,
-        shapeType: 'triangle',
+        id: 'triangle', name: 'Triangle',
+        geom: [ { type: 'polygon', points: regularPolygonPoints(12, 12, 6, 3) } ]
       },
       {
-        id: 'pentalobe',
-        name: 'Pentalobe',
-        svgInner: (() => {
-          const pts = regularPolygonPoints(12, 12, 5.5, 5);
-          return pts.map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2" fill="none" stroke="currentColor" stroke-width="1"/>`).join('');
-        })(),
-        shapeType: 'pentalobe',
+        id: 'pentalobe', name: 'Pentalobe',
+        geom: regularPolygonPoints(12, 12, 5.5, 5).map(p => ({ type: 'circle', cx: p[0], cy: p[1], r: 2.2 }))
       },
       {
-        id: 'clutch_a',
-        name: 'Clutch Type A',
-        svgInner: `<ellipse cx="12" cy="12" rx="6" ry="2.5" fill="none" stroke="currentColor" stroke-width="1.3"/>`,
-        shapeType: 'clutch_a',
+        id: 'clutch_a', name: 'Clutch Type A',
+        geom: [ { type: 'ellipse', cx: 12, cy: 12, rx: 6, ry: 2.5 } ]
       },
       {
-        id: 'clutch_g',
-        name: 'Clutch Type G (Butterfly)',
-        svgInner: `<path d="M12 7 Q16 10 12 12 Q8 10 12 7Z" fill="none" stroke="currentColor" stroke-width="1.2"/>
-                   <path d="M12 17 Q16 14 12 12 Q8 14 12 17Z" fill="none" stroke="currentColor" stroke-width="1.2"/>`,
-        shapeType: 'clutch_g',
+        id: 'clutch_g', name: 'Clutch Type G',
+        geom: [
+          { type: 'ellipse', cx: 12, cy: 12, rx: 2.5, ry: 5 },
+          { type: 'ellipse', cx: 12, cy: 12, rx: 5, ry: 2.5 }
+        ]
       },
       {
-        id: 'bristol',
-        name: 'Bristol',
-        svgInner: (() => {
-          const splines = [];
-          for (let i = 0; i < 6; i++) {
+        id: 'torq_set', name: 'Torq-Set',
+        geom: [
+          { type: 'line', x1: 12, y1: 4, x2: 12, y2: 11, w: 2 },
+          { type: 'line', x1: 12, y1: 13, x2: 12, y2: 20, w: 2 },
+          { type: 'line', x1: 4, y1: 12, x2: 11, y2: 12, w: 2 },
+          { type: 'line', x1: 13, y1: 12, x2: 20, y2: 12, w: 2 }
+        ]
+      },
+      {
+        id: 'bristol', name: 'Bristol',
+        geom: [
+          { type: 'circle', cx: 12, cy: 12, r: 3 },
+          ...Array.from({length: 6}, (_, i) => {
             const a1 = (i * 60 - 90) * Math.PI / 180;
             const a2 = ((i + 0.4) * 60 - 90) * Math.PI / 180;
-            const x1 = 12 + 3 * Math.cos(a1), y1 = 12 + 3 * Math.sin(a1);
-            const x2 = 12 + 6 * Math.cos(a2), y2 = 12 + 6 * Math.sin(a2);
-            splines.push(`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="currentColor" stroke-width="1.3"/>`);
-          }
-          return splines.join('') + '<circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1"/>';
-        })(),
-        shapeType: 'bristol',
+            return { type: 'line', x1: 12 + 3 * Math.cos(a1), y1: 12 + 3 * Math.sin(a1), x2: 12 + 6 * Math.cos(a2), y2: 12 + 6 * Math.sin(a2), w: 1.5 };
+          })
+        ]
       },
       {
-        id: 'torq_set',
-        name: 'Torq-Set',
-        svgInner: `<path d="M12 5v6M12 13v6M5 12h6M13 12h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>`,
-        shapeType: 'torq_set',
+        id: 'twelve_point', name: '12-Point',
+        geom: [ { type: 'polygon', points: starPoints(12, 12, 7, 5, 12) } ]
       },
       {
-        id: 'twelve_point',
-        name: '12-Point',
-        svgInner: `<path d="${starPath(12, 12, 7, 5, 12)}" fill="none" stroke="currentColor" stroke-width="1"/>`,
-        shapeType: 'twelve_point',
-      },
-      {
-        id: 'polydrive',
-        name: 'Polydrive',
-        svgInner: `<path d="${starPath(12, 12, 6.5, 4.5, 6, 30)}" fill="none" stroke="currentColor" stroke-width="1.2"/>`,
-        shapeType: 'polydrive',
-      },
-      {
-        id: 'twelve_spline',
-        name: '12-Spline (Flange)',
-        svgInner: `<path d="${starPath(12, 12, 7, 4.5, 12)}" fill="none" stroke="currentColor" stroke-width="0.9"/>`,
-        shapeType: 'twelve_spline',
-      },
-    ],
+        id: 'polydrive', name: 'Polydrive',
+        geom: [ { type: 'polygon', points: starPoints(12, 12, 6.5, 4.5, 6, 30) } ]
+      }
+    ]
   },
-  // ===== Drill / Other =====
   {
     category: 'Drill / Other',
     types: [
       {
-        id: 'wood_drill',
-        name: 'Wood Drill',
-        svgInner: `<path d="M12 5v14" stroke="currentColor" stroke-width="1.5"/>
-                   <path d="M9 8l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.3"/>
-                   <path d="M8 13c2-1.5 6-1.5 8 0" fill="none" stroke="currentColor" stroke-width="1"/>`,
-        shapeType: 'wood_drill',
+        id: 'wood_drill', name: 'Wood Drill',
+        geom: [
+          { type: 'line', x1: 12, y1: 5, x2: 12, y2: 19, w: 2 },
+          { type: 'line', x1: 9, y1: 8, x2: 12, y2: 5, w: 1.5 },
+          { type: 'line', x1: 15, y1: 8, x2: 12, y2: 5, w: 1.5 },
+          { type: 'circle', cx: 12, cy: 12, r: 3.5 }
+        ]
       },
       {
-        id: 'stone_drill',
-        name: 'Stone / Masonry Drill',
-        svgInner: `<path d="M12 5v14" stroke="currentColor" stroke-width="1.5"/>
-                   <path d="M8 7h8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-                   <path d="M9.5 10h5M10 13h4" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>`,
-        shapeType: 'stone_drill',
+        id: 'stone_drill', name: 'Stone Drill',
+        geom: [
+          { type: 'line', x1: 12, y1: 5, x2: 12, y2: 19, w: 2 },
+          { type: 'line', x1: 7, y1: 7, x2: 17, y2: 7, w: 3 },
+          { type: 'line', x1: 9.5, y1: 10, x2: 14.5, y2: 10, w: 1.5 },
+          { type: 'line', x1: 10, y1: 13, x2: 14, y2: 13, w: 1.5 }
+        ]
       },
       {
-        id: 'metal_drill',
-        name: 'Metal / HSS Drill',
-        svgInner: `<path d="M12 5v14" stroke="currentColor" stroke-width="1.5"/>
-                   <path d="M9 6.5l3 2 3-2" fill="none" stroke="currentColor" stroke-width="1.2"/>
-                   <path d="M10 10l2 1 2-1M10 13l2 1 2-1" fill="none" stroke="currentColor" stroke-width="0.8"/>`,
-        shapeType: 'metal_drill',
+        id: 'metal_drill', name: 'Metal Drill',
+        geom: [
+          { type: 'line', x1: 12, y1: 5, x2: 12, y2: 19, w: 2 },
+          { type: 'line', x1: 9, y1: 6.5, x2: 12, y2: 8.5, w: 1.5 },
+          { type: 'line', x1: 15, y1: 6.5, x2: 12, y2: 8.5, w: 1.5 },
+          { type: 'line', x1: 10, y1: 10, x2: 12, y2: 11, w: 1 },
+          { type: 'line', x1: 14, y1: 10, x2: 12, y2: 11, w: 1 }
+        ]
       },
       {
-        id: 'nut_driver',
-        name: 'Nut Driver',
-        svgInner: `<path d="${polygonToPath(regularPolygonPoints(12, 12, 7, 6))}" fill="none" stroke="currentColor" stroke-width="1.5"/>
-                   <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1"/>`,
-        shapeType: 'nut_driver',
-      },
-    ],
-  },
+        id: 'nut_driver', name: 'Nut Driver',
+        geom: [
+          { type: 'polygon', points: regularPolygonPoints(12, 12, 7, 6) },
+          { type: 'circle_cut', cx: 12, cy: 12, r: 3.5 }
+        ]
+      }
+    ]
+  }
 ];
 
-// Flattened lookup map
 const _typesMap = new Map();
 const _allTypes = [];
 for (const cat of BIT_TYPES) {
@@ -292,10 +231,33 @@ export function getBitType(id) { return _typesMap.get(id); }
 
 /**
  * Returns a complete SVG string for a bit type icon (for UI display).
- * Black circle outline + inner shape.
+ * Generates identical geometric shapes to the 3D model.
  */
 export function getBitTypeSVG(id, size = 24) {
   const bt = _typesMap.get(id);
   if (!bt) return '';
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" style="color:currentColor">${CIRCLE}${bt.svgInner}</svg>`;
+
+  const CIRCLE = '<circle cx="12" cy="12" r="10" fill="none" class="bit-hud-outline" stroke="currentColor" stroke-width="1.5"/>';
+
+  let inner = '';
+  for (const g of bt.geom) {
+    if (g.type === 'line') {
+      inner += `<line x1="${g.x1}" y1="${g.y1}" x2="${g.x2}" y2="${g.y2}" stroke="currentColor" stroke-width="${g.w}" stroke-linecap="round"/>`;
+    } else if (g.type === 'polygon') {
+      const pts = g.points.map(p => `${p[0]},${p[1]}`).join(' ');
+      inner += `<polygon points="${pts}" fill="currentColor"/>`;
+    } else if (g.type === 'circle') {
+      inner += `<circle cx="${g.cx}" cy="${g.cy}" r="${g.r}" fill="currentColor"/>`;
+    } else if (g.type === 'circle_cut') {
+      // SVG doesn't easily subtraction without masks, but in visually overlapping, we can just draw white/background color.
+      // Since our UI icons are on light or dark bg, we can draw stroke or use mask.
+      // But actually, for ui simplicity, let's just draw the cut as background color!
+      // In CSS we will ensure .bit-hud-cut is var(--bg-panel).
+      inner += `<circle cx="${g.cx}" cy="${g.cy}" r="${g.r}" fill="var(--bg-panel, #fff)"/>`;
+    } else if (g.type === 'ellipse') {
+      inner += `<ellipse cx="${g.cx}" cy="${g.cy}" rx="${g.rx}" ry="${g.ry}" fill="currentColor"/>`;
+    }
+  }
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" style="color:currentColor">${CIRCLE}${inner}</svg>`;
 }

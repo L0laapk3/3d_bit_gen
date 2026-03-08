@@ -19,11 +19,13 @@ function makeDefaultConfig(name = 'New Configuration') {
     labelBothSides: true,
     row1SlotCount: 6,
     row2SlotCount: 6,
-    spacing: 3,
+    padding: 3,
     holeDepth: 8,
     hexWidth: 6.35,
     labelDepth: 0.5,
     cornerRadius: 1,
+    plateHeight: 10,
+    textLineWidth: 0.5,
     row1Slots: Array.from({ length: 6 }, () => makeDefaultSlot()),
     row2Slots: Array.from({ length: 6 }, () => makeDefaultSlot()),
   };
@@ -38,11 +40,13 @@ function makeBuiltinConfigs() {
     labelBothSides: true,
     row1SlotCount: 3,
     row2SlotCount: 6,
-    spacing: 3,
+    padding: 3,
     holeDepth: 8,
     hexWidth: 6.35,
     labelDepth: 0.5,
     cornerRadius: 1,
+    plateHeight: 10,
+    textLineWidth: 0.5,
     row1Slots: [
       { bitType: 'pozidrive', label: 'PZ1' },
       { bitType: 'pozidrive', label: 'PZ2' },
@@ -54,16 +58,18 @@ function makeBuiltinConfigs() {
   const torx = {
     id: generateId(),
     name: 'Torx Set',
-    description: 'https://nl.aliexpress.com/item/1005007268652152.html',
+    description: 'https://aliexpress.com/item/1005007268652152.html',
     rowMode: 'single',
     labelBothSides: true,
     row1SlotCount: 8,
-    row2SlotCount: 6,
-    spacing: 3,
+    row2SlotCount: 8,
+    padding: 3,
     holeDepth: 8,
     hexWidth: 6.35,
     labelDepth: 0.5,
     cornerRadius: 1,
+    plateHeight: 10,
+    textLineWidth: 0.5,
     row1Slots: [
       { bitType: 'torx', label: 'T8' },
       { bitType: 'torx', label: 'T10' },
@@ -74,7 +80,7 @@ function makeBuiltinConfigs() {
       { bitType: 'torx', label: 'T30' },
       { bitType: 'torx', label: 'T40' },
     ],
-    row2Slots: Array.from({ length: 6 }, () => makeDefaultSlot()),
+    row2Slots: Array.from({ length: 8 }, () => makeDefaultSlot()),
   };
 
   return { configs: [pz, torx], activeId: torx.id };
@@ -82,10 +88,13 @@ function makeBuiltinConfigs() {
 
 function loadConfigs() {
   try {
-    const raw = localStorage.getItem(CONFIGS_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  return null;
+    const data = localStorage.getItem(CONFIGS_KEY);
+    if (!data) return null;
+    return JSON.parse(data);
+  } catch (e) {
+    console.warn("Failed to read configs from local storage.", e);
+    return null;
+  }
 }
 
 function saveConfigs(configs) {

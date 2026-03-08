@@ -22,19 +22,14 @@
 	</div>
 
 	<div class="app-layout">
-		<!-- Left sidebar: Panel 1 + Panel 2 stacked, scrollable -->
+		<!-- Left sidebar -->
 		<aside class="sidebar" id="sidebar">
 
-			<!-- Panel 1: Title & Config Selection -->
+			<!-- Panel 1: Configurations -->
 			<section class="panel panel-config-select" id="panel-config-select">
 				<h1 class="app-title">Bit Holder Generator</h1>
-				<div class="config-tabs" id="config-tabs">
-					<!-- Config tab buttons rendered here by JS -->
-				</div>
-				<div class="config-actions">
-					<button id="btn-new-config" class="btn btn-sm" title="New configuration">＋ New</button>
-					<button id="btn-delete-config" class="btn btn-sm btn-danger" title="Delete configuration">🗑
-						Delete</button>
+				<div class="config-list" id="config-list">
+					<!-- Config rows rendered by JS -->
 				</div>
 			</section>
 
@@ -80,60 +75,85 @@
 				<!-- Dimensions -->
 				<div class="form-row">
 					<div class="form-group">
-						<label for="spacing">Spacing <span class="unit-label">(mm)</span></label>
-						<input type="number" id="spacing" value="3" min="0" step="0.1">
+						<label for="hexWidth">Hex width (flat to flat)</label>
+						<div class="input-with-unit">
+							<input type="number" id="hexWidth" value="6.35" min="1" step="0.01">
+							<span class="unit-label">mm</span>
+						</div>
 					</div>
 					<div class="form-group">
-						<label for="holeDepth">Hole Depth <span class="unit-label">(mm)</span></label>
-						<input type="number" id="holeDepth" value="8" min="1" step="0.1">
-					</div>
-				</div>
-				<div class="form-row">
-					<div class="form-group">
-						<label for="hexWidth">Hex Width f2f <span class="unit-label">(mm)</span></label>
-						<input type="number" id="hexWidth" value="6.35" min="1" step="0.01">
-					</div>
-					<div class="form-group">
-						<label for="labelDepth">Label Depth <span class="unit-label">(mm)</span></label>
-						<input type="number" id="labelDepth" value="0.5" min="0" step="0.05">
+						<label for="padding">Padding</label>
+						<div class="input-with-unit">
+							<input type="number" id="padding" value="3" min="0" step="0.1">
+							<span class="unit-label">mm</span>
+						</div>
 					</div>
 				</div>
 				<div class="form-row">
 					<div class="form-group">
-						<label for="cornerRadius">Corner Radius <span class="unit-label">(mm)</span></label>
-						<input type="number" id="cornerRadius" value="1" min="0" step="0.1">
+						<label for="holeDepth">Hole Depth</label>
+						<div class="input-with-unit">
+							<input type="number" id="holeDepth" value="8" min="1" step="0.1">
+							<span class="unit-label">mm</span>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="plateHeight">Height</label>
+						<div class="input-with-unit">
+							<input type="number" id="plateHeight" value="10" min="3" step="0.1">
+							<span class="unit-label">mm</span>
+						</div>
+					</div>
+				</div>
+				<div class="form-row">
+					<div class="form-group">
+						<label for="cornerRadius">Corner Radius</label>
+						<div class="input-with-unit">
+							<input type="number" id="cornerRadius" value="1" min="0" step="0.1">
+							<span class="unit-label">mm</span>
+						</div>
 					</div>
 					<div class="form-group"></div>
+				</div>
+				<div class="form-row">
+					<div class="form-group">
+						<label for="labelDepth">Label Depth</label>
+						<div class="input-with-unit">
+							<input type="number" id="labelDepth" value="0.5" min="0" step="0.05">
+							<span class="unit-label">mm</span>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="textLineWidth">Text Line Width</label>
+						<div class="input-with-unit">
+							<input type="number" id="textLineWidth" value="0.5" min="0.05" step="0.05">
+							<span class="unit-label">mm</span>
+						</div>
+					</div>
 				</div>
 
 				<hr class="divider">
 
 				<!-- Row 1 Slots -->
 				<div class="slots-section">
-					<div class="slots-header">
-						<h3>Row 1</h3>
-						<div class="form-group form-group-inline">
-							<label for="row1SlotCount">Slots:</label>
-							<input type="number" id="row1SlotCount" value="6" min="1" max="30" step="1"
-								class="input-narrow">
-						</div>
-					</div>
 					<div id="row1-slots" class="slot-list"></div>
+					<button id="btn-add-row1-slot" class="btn btn-sm" style="margin-top: 8px; width: 100%;">＋ Add
+						Slot</button>
 				</div>
 
-				<!-- Row 2 Slots (only for double row) -->
+				<!-- Row 2 (double row only) -->
 				<div class="slots-section" id="row2-section" style="display:none;">
-					<div class="slots-header">
-						<h3>Row 2</h3>
-						<div class="form-group form-group-inline">
-							<label for="row2SlotCount">Slots:</label>
-							<input type="number" id="row2SlotCount" value="6" min="1" max="30" step="1"
-								class="input-narrow">
-						</div>
-					</div>
 					<div id="row2-slots" class="slot-list"></div>
+					<button id="btn-add-row2-slot" class="btn btn-sm" style="margin-top: 8px; width: 100%;">＋ Add
+						Slot</button>
 				</div>
 			</section>
+
+			<!-- Source code link -->
+			<div class="sidebar-footer">
+				<a href="https://github.com/L0laapk3/3d_bit_gen" target="_blank" rel="noopener">Source code on
+					GitHub</a>
+			</div>
 		</aside>
 
 		<!-- Panel 3: 3D Preview -->
