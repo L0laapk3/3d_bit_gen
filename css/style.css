@@ -674,8 +674,33 @@ input[type="number"] {
 	gap: 8px;
 }
 
+/* ===== Sidebar Footer CTA ===== */
+.sidebar-footer {
+	padding: 14px 20px;
+	text-align: center;
+	font-size: 0.78rem;
+	color: var(--text-muted);
+	border-top: 1px solid var(--border-light);
+}
+
+.sidebar-footer a {
+	color: var(--text-muted);
+	text-decoration: none;
+	transition: color var(--transition);
+}
+
+.sidebar-footer a:hover {
+	color: var(--accent);
+}
+
+.footer-separator {
+	margin: 0 6px;
+	opacity: 0.5;
+}
+
 /* ===== Mobile Responsive ===== */
 @media (max-width: 768px) {
+
 	html,
 	body {
 		overflow: auto;
