@@ -48,25 +48,34 @@ function normalizePolylines(polylines, mirror) {
 }
 
 // Build a single unified 2D shape for all text polylines.
-// Unioning in 2D before extruding prevents non-manifold walls where strokes overlap (e.g. letter "8").
+// Uses the official JSCAD approach from their own text.js example:
+// place a circle at every vertex, then hullChain consecutive circles.
+// hullChain produces clean convex capsule segments with no shared/zero-thickness
+// edges at joints — the root cause of one-sided walls in letters like "8".
 function buildTextGeom2D(polylines, lineWidth) {
-  const { line } = jscad.primitives;
-  const { expand } = jscad.expansions;
+  const { circle } = jscad.primitives;
+  const { hullChain } = jscad.hulls;
   const { union } = jscad.booleans;
+  const { translate } = jscad.transforms;
   if (!polylines || polylines.length === 0) return null;
 
-  const lw = Math.max(lineWidth, 0.05);
+  const r = Math.max(lineWidth, 0.05) / 2;
+  const dot = circle({ radius: r, segments: 16 });
   const shapes = [];
+
   for (const pts of polylines) {
+    if (!pts || pts.length < 2) continue;
     try {
-      shapes.push(expand({ delta: lw / 2, corners: 'round', segments: 8 }, line(pts)));
-    } catch { } // ignore degenerate segments
+      const corners = pts.map(([x, y]) => translate([x, y], dot));
+      shapes.push(hullChain(...corners));
+    } catch { }
   }
+
   if (shapes.length === 0) return null;
   try {
     return shapes.length === 1 ? shapes[0] : union(...shapes);
   } catch {
-    return shapes[0]; // fallback
+    return shapes[0];
   }
 }
 
@@ -270,13 +279,13 @@ function buildModel(config) {
        const b2D = buildBitShape2D(bType.geom, (logoSize / 20) * groupScale);
        if (b2D) {
           const sym2D = translate([0, logoY * groupScale, 0], b2D);
-          let symExtruded = extrudeLinear({ height: cutHeight }, sym2D);
+          let symExtruded = extrudeLinear({ height: cutHalf }, sym2D);
           symExtruded = translate([0, 0, -cutHalf], symExtruded);
 
           // Clip symbol strictly to the logo circle so it cannot fill adjacent text engravings
           const clipCircle2D = circle({ radius: (logoSize / 2) * groupScale, segments: 32 });
           const clipCircle2DPos = translate([0, logoY * groupScale, 0], clipCircle2D);
-          let clipCyl = extrudeLinear({ height: cutHeight }, clipCircle2DPos);
+          let clipCyl = extrudeLinear({ height: cutHalf }, clipCircle2DPos);
           clipCyl = translate([0, 0, -cutHalf], clipCyl);
 
           symbolAdd3D = intersect(symExtruded, clipCyl);
