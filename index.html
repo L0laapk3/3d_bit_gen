@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description"
+		content="Generate parametric 3D-printable screw bit holder STL files directly in your browser.">
+	<title>Bit Holder Generator</title>
+	<link rel="stylesheet" href="css/style.css">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+	<!-- Floating theme toggle (top-right of entire window) -->
+	<div class="theme-toggle" id="theme-toggle" title="Toggle theme">
+		<button class="theme-btn" data-theme-value="light" title="Light theme">☀️</button>
+		<button class="theme-btn active" data-theme-value="system" title="System theme">🖥️</button>
+		<button class="theme-btn" data-theme-value="dark" title="Dark theme">🌙</button>
+	</div>
+
+	<div class="app-layout">
+		<!-- Left sidebar: Panel 1 + Panel 2 stacked, scrollable -->
+		<aside class="sidebar" id="sidebar">
+
+			<!-- Panel 1: Title & Config Selection -->
+			<section class="panel panel-config-select" id="panel-config-select">
+				<h1 class="app-title">Bit Holder Generator</h1>
+				<div class="config-tabs" id="config-tabs">
+					<!-- Config tab buttons rendered here by JS -->
+				</div>
+				<div class="config-actions">
+					<button id="btn-new-config" class="btn btn-sm" title="New configuration">＋ New</button>
+					<button id="btn-delete-config" class="btn btn-sm btn-danger" title="Delete configuration">🗑
+						Delete</button>
+				</div>
+			</section>
+
+			<!-- Panel 2: Parameters -->
+			<section class="panel panel-params" id="panel-params">
+				<div class="panel-params-header">
+					<h2 class="panel-title">Parameters</h2>
+					<div class="unit-toggle">
+						<button class="unit-btn active" data-unit="mm">mm</button>
+						<button class="unit-btn" data-unit="in">in</button>
+					</div>
+				</div>
+
+				<!-- Description -->
+				<div class="form-group">
+					<label for="config-description">Description</label>
+					<textarea id="config-description" class="config-description" placeholder="Optional notes..."
+						rows="1"></textarea>
+				</div>
+
+				<hr class="divider">
+
+				<!-- Row Mode -->
+				<div class="form-group">
+					<label>Row Mode</label>
+					<div class="radio-group">
+						<label class="radio-label"><input type="radio" name="rowMode" value="single" checked> Single
+							Row</label>
+						<label class="radio-label"><input type="radio" name="rowMode" value="double"> Double Row</label>
+					</div>
+				</div>
+
+				<!-- Single-row: label both sides -->
+				<div class="form-group" id="group-label-both-sides">
+					<label class="checkbox-label">
+						<input type="checkbox" id="labelBothSides" checked>
+						Label both sides
+					</label>
+				</div>
+
+				<hr class="divider">
+
+				<!-- Dimensions -->
+				<div class="form-row">
+					<div class="form-group">
+						<label for="spacing">Spacing <span class="unit-label">(mm)</span></label>
+						<input type="number" id="spacing" value="3" min="0" step="0.1">
+					</div>
+					<div class="form-group">
+						<label for="holeDepth">Hole Depth <span class="unit-label">(mm)</span></label>
+						<input type="number" id="holeDepth" value="8" min="1" step="0.1">
+					</div>
+				</div>
+				<div class="form-row">
+					<div class="form-group">
+						<label for="hexWidth">Hex Width f2f <span class="unit-label">(mm)</span></label>
+						<input type="number" id="hexWidth" value="6.35" min="1" step="0.01">
+					</div>
+					<div class="form-group">
+						<label for="labelDepth">Label Depth <span class="unit-label">(mm)</span></label>
+						<input type="number" id="labelDepth" value="0.5" min="0" step="0.05">
+					</div>
+				</div>
+				<div class="form-row">
+					<div class="form-group">
+						<label for="cornerRadius">Corner Radius <span class="unit-label">(mm)</span></label>
+						<input type="number" id="cornerRadius" value="1" min="0" step="0.1">
+					</div>
+					<div class="form-group"></div>
+				</div>
+
+				<hr class="divider">
+
+				<!-- Row 1 Slots -->
+				<div class="slots-section">
+					<div class="slots-header">
+						<h3>Row 1</h3>
+						<div class="form-group form-group-inline">
+							<label for="row1SlotCount">Slots:</label>
+							<input type="number" id="row1SlotCount" value="6" min="1" max="30" step="1"
+								class="input-narrow">
+						</div>
+					</div>
+					<div id="row1-slots" class="slot-list"></div>
+				</div>
+
+				<!-- Row 2 Slots (only for double row) -->
+				<div class="slots-section" id="row2-section" style="display:none;">
+					<div class="slots-header">
+						<h3>Row 2</h3>
+						<div class="form-group form-group-inline">
+							<label for="row2SlotCount">Slots:</label>
+							<input type="number" id="row2SlotCount" value="6" min="1" max="30" step="1"
+								class="input-narrow">
+						</div>
+					</div>
+					<div id="row2-slots" class="slot-list"></div>
+				</div>
+			</section>
+		</aside>
+
+		<!-- Panel 3: 3D Preview -->
+		<main class="preview-area" id="preview-area">
+			<div id="preview-container" class="preview-container"></div>
+			<button id="btn-download" class="btn btn-download">⬇ Download (.stl)</button>
+		</main>
+	</div>
+
+	<!-- Delete confirmation modal -->
+	<div class="modal-overlay" id="modal-overlay" style="display:none;">
+		<div class="modal">
+			<h3>Delete Configuration</h3>
+			<p>Are you sure you want to delete <strong id="modal-config-name"></strong>?</p>
+			<div class="modal-actions">
+				<button id="modal-cancel" class="btn">Cancel</button>
+				<button id="modal-confirm" class="btn btn-danger">Delete</button>
+			</div>
+		</div>
+	</div>
+
+	<script type="module" src="js/app.js"></script>
+</body>
+
+</html>
